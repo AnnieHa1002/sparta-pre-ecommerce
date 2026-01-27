@@ -1,4 +1,3 @@
-```markdown
 이번 과제는 상품(Product)과 주문(Order) 두 도메인으로 구성된 간단한 주문 관리 서비스 구현입니다.
 과제는 필수 과제와 도전 과제로 나뉩니다. 아래 요구사항을 구현하세요.
 
@@ -32,4 +31,39 @@
 - 재고가 0이면 주문 생성이 되지 않도록 처리하세요.
 - 재고 차감이 원자적으로 처리되도록 방법을 고려하고 적용하세요(예: DB 락, 낙관적/비관적 락 등).
 - 제출 시 재고 1인 상품에 대해 주문을 2번 시도한 결과 캡처 1장과 원자성 확보 방법의 선택 이유를 간단히 적어 제출하세요.
+
+## ERD
+
+```mermaid
+erDiagram
+    Product {
+        Long id PK
+        VARCHAR_500 name "NOT NULL"
+        Integer price "NOT NULL"
+        String currency "NOT NULL"
+        Integer stock "NOT NULL"
+        TEXT description
+        Boolean is_deleted "NOT NULL, default false"
+        Boolean is_hidden "NOT NULL, default false"
+        String seller_name "NOT NULL"
+        String seller_email "NOT NULL"
+        String password
+        LocalDateTime created_at
+        LocalDateTime modified_at
+    }
+
+    Order {
+        Long id PK
+        Long product_id FK "NOT NULL"
+        Integer count "NOT NULL"
+        String buyer_name "NOT NULL"
+        String buyer_email "NOT NULL"
+        String buyer_address "NOT NULL"
+        String buyer_postcode "NOT NULL"
+        String password
+        LocalDateTime created_at
+        LocalDateTime modified_at
+    }
+
+    Product ||--o{ Order : "has many"
 ```
