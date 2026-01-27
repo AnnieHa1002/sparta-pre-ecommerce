@@ -1,5 +1,6 @@
 package com.sparta.ecommerce.order.entity;
 
+import com.sparta.ecommerce._global.enums.OrderStatus;
 import com.sparta.ecommerce._global.utility.Timestamped;
 import com.sparta.ecommerce.product.entity.Product;
 import jakarta.persistence.*;
@@ -33,5 +34,7 @@ public class Order extends Timestamped {
     private String buyerPostcode;
 
     private String password;
+
+    private OrderStatus status;
 
 }

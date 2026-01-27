@@ -56,7 +56,7 @@ public class Product extends Timestamped {
     private List<Order> orders;
 
 
-    public Product(ProductDto.Request requestBody, String encr) {
+    public Product(ProductDto.Request requestBody, String encriptedPassword) {
         this.name = requestBody.getName();
         this.price = requestBody.getPrice();
         this.currency = requestBody.getCurrency();
@@ -65,8 +65,25 @@ public class Product extends Timestamped {
         this.imageUrl = requestBody.getImageUrl();
         this.sellerName = requestBody.getSellerName();
         this.sellerEmail = requestBody.getSellerEmail();
-        this.password =
+        this.password = encriptedPassword;
     }
 
 
+    public void update(ProductDto.Request requestBody) {
+        if (requestBody.getName() != null) {
+            this.name = requestBody.getName();
+        }
+        if (requestBody.getPrice() != null) {
+            this.price = requestBody.getPrice();
+        }
+        if (requestBody.getStock() != null) {
+            this.stock = requestBody.getStock();
+        }
+        if (requestBody.getDescription() != null) {
+            this.description = requestBody.getDescription();
+        }
+        if (requestBody.getImageUrl() != null) {
+            this.imageUrl = requestBody.getImageUrl();
+        }
+    }
 }
