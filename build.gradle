@@ -44,6 +44,9 @@ dependencies {
 
 	// Jackson JSR310 모듈 추가
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+	// Swagger (springdoc-openapi)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
 }
 
 tasks.named('test') {
