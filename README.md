@@ -111,6 +111,26 @@ erDiagram
 | GET    | `/api/products/sellers`           | 판매자별 상품 목록 조회        |
 | GET    | `/api/products/search`            | 상품 검색                    |
 
+#### 상품 목록 조회
+![상품 목록 조회](src/main/resources/static/images/product-list.png)
+
+#### 상품 등록
+![상품 등록](src/main/resources/static/images/product-register.png)
+
+#### 상품 상세 조회
+![상품 상세 조회](src/main/resources/static/images/product-detail.png)
+
+#### 상품 수정
+
+수정 전:
+![상품 수정 전](src/main/resources/static/images/product-before-update.png)
+
+수정 후:
+![상품 수정](src/main/resources/static/images/product-update.png)
+
+#### 상품 삭제
+![상품 삭제](src/main/resources/static/images/product-delete.png)
+
 ### Order API
 
 | Method | Endpoint                              | Description                          |
@@ -119,6 +139,15 @@ erDiagram
 | GET    | `/api/products/{productId}/orders`    | 상품별 주문 내역 조회 (판매자 인증 필요) |
 | GET    | `/api/orders`                         | 구매자 이메일로 주문 내역 조회          |
 | GET    | `/api/orders/{orderId}`               | 주문 단건 조회 (주문 비밀번호 필요)     |
+
+#### 상품 주문
+![상품 주문](src/main/resources/static/images/order-create.png)
+
+#### 구매자 이메일로 주문 목록 조회
+![주문 목록 조회](src/main/resources/static/images/order-list-by-email.png)
+
+#### 주문 단건 조회
+![주문 단건 조회](src/main/resources/static/images/order-detail.png)
 
 ## Project Structure
 
