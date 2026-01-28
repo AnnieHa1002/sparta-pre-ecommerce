@@ -42,24 +42,25 @@ erDiagram
         String currency "NOT NULL"
         Integer stock "NOT NULL"
         TEXT description
-        Boolean is_deleted "NOT NULL, default false"
-        Boolean is_hidden "NOT NULL, default false"
+        String image_url
         String seller_name "NOT NULL"
         String seller_email "NOT NULL"
         String password
+        Boolean is_deleted "NOT NULL, default false"
+        Boolean is_hidden "NOT NULL, default false"
         LocalDateTime created_at
         LocalDateTime modified_at
     }
 
     Order {
         Long id PK
-        Long product_id FK "NOT NULL"
+        Long product_id FK
         Integer count "NOT NULL"
-        String buyer_name "NOT NULL"
         String buyer_email "NOT NULL"
         String buyer_address "NOT NULL"
         String buyer_postcode "NOT NULL"
-        String password
+        String encrypted_password "NOT NULL"
+        OrderStatus status "NOT NULL, default ORDERED"
         LocalDateTime created_at
         LocalDateTime modified_at
     }
