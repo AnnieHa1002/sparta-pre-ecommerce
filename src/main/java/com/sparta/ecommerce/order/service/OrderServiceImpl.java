@@ -35,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderDto.Info> getOrdersByBuyerEmail(String buyerEmail, int size, int page) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders = orderRepository.findAllByBuyerEmail(buyerEmail, pageable);
         return orders.map(order -> new OrderDto.Info(order, order.getProduct()));
     }
@@ -45,7 +45,7 @@ public class OrderServiceImpl implements OrderService {
             int size, int page) {
         Product product = productService.getProductEntityById(productId);
         if (encoderUtils.matches(password, product.getPassword())) {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
             Page<Order> orders = orderRepository.findAllByProductId(productId, pageable);
             return orders.map(order -> new OrderDto.DetailedInfo(order, product));
         }

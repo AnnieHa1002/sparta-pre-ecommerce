@@ -27,14 +27,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto.Info> getProducts(int page, int size) {
         //id  descending
-        Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "id"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
         Page<Product> products = productRepository.findAllByIsDeletedIsFalse(pageable);
         return products.map(ProductDto.Info::new);
     }
 
     @Override
     public Page<ProductDto.Info> getSellerProducts(String sellerName, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "id"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
         Page<Product> products = productRepository.findAllBySellerNameAndIsDeletedIsFalse(sellerName, pageable);
         return products.map(ProductDto.Info::new);
     }
