@@ -1,6 +1,7 @@
 package com.sparta.ecommerce.product.controller;
 
 import com.sparta.ecommerce._global.Message;
+import com.sparta.ecommerce._global.dto.GlobalDto;
 import com.sparta.ecommerce.product.dto.ProductDto;
 import com.sparta.ecommerce.product.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +27,7 @@ public class ProductController {
     public ResponseEntity<Message> getAllProducts(
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
-        Page<ProductDto.Info> response = productService.getProducts(page, size);
+        GlobalDto.PageResponse<ProductDto.Info> response = productService.getProducts(page, size);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
@@ -82,7 +83,8 @@ public class ProductController {
             @Parameter(description = "판매자 이름") @RequestParam String sellerName,
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
-        Page<ProductDto.Info> response = productService.getSellerProducts(sellerName, page, size);
+        GlobalDto.PageResponse<ProductDto.Info>
+                response = productService.getSellerProducts(sellerName, page, size);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
@@ -92,7 +94,8 @@ public class ProductController {
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "검색 키워드") @RequestParam String keyword) {
-        Page<ProductDto.Info> response = productService.searchProducts(page, size, keyword);
+        GlobalDto.PageResponse<ProductDto.Info>
+                response = productService.searchProducts(page, size, keyword);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 

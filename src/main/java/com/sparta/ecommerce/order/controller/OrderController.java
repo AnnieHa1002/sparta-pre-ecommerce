@@ -1,6 +1,7 @@
 package com.sparta.ecommerce.order.controller;
 
 import com.sparta.ecommerce._global.Message;
+import com.sparta.ecommerce._global.dto.GlobalDto;
 import com.sparta.ecommerce.order.dto.OrderDto;
 import com.sparta.ecommerce.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +37,8 @@ public class OrderController {
             @Parameter(description = "구매자 이메일") @RequestParam String buyerEmail,
             @Parameter(description = "페이지 당 개수") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page) {
-        Page<OrderDto.Info> response = orderService.getOrdersByBuyerEmail(buyerEmail, size, page);
+        GlobalDto.PageResponse<OrderDto.Info>
+                response = orderService.getOrdersByBuyerEmail(buyerEmail, size, page);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
@@ -47,7 +49,7 @@ public class OrderController {
             @Parameter(description = "판매자 비밀번호") @RequestParam String password,
             @Parameter(description = "페이지 당 개수") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page) {
-        Page<OrderDto.DetailedInfo> response =
+        GlobalDto.PageResponse<OrderDto.DetailedInfo> response =
                 orderService.getOrdersByProductId(productId, password, size, page);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }

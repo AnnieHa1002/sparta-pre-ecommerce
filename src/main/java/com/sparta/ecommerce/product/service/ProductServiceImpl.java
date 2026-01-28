@@ -1,5 +1,6 @@
 package com.sparta.ecommerce.product.service;
 
+import com.sparta.ecommerce._global.dto.GlobalDto;
 import com.sparta.ecommerce._global.exception.BusinessException;
 import com.sparta.ecommerce._global.exception.ExceptionCode;
 import com.sparta.ecommerce._global.utility.EncoderUtils;
@@ -25,19 +26,23 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public Page<ProductDto.Info> getProducts(int page, int size) {
+    public GlobalDto.PageResponse<ProductDto.Info> getProducts(int page, int size) {
         //id  descending
         Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
-        Page<Product> products = productRepository.findAllByIsDeletedIsFalse(pageable);
-        return products.map(ProductDto.Info::new);
+        Page<Product> products =
+                productRepository.findAllByIsDeletedIsFalse(pageable);
+        Page<ProductDto.Info> productPage = products.map(ProductDto.Info::new);
+        return GlobalDto.PageResponse.from(productPage);
     }
 
     @Override
-    public Page<ProductDto.Info> getSellerProducts(String sellerName, int page, int size) {
+    public GlobalDto.PageResponse<ProductDto.Info> getSellerProducts(String sellerName, int page,
+            int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
         Page<Product> products =
                 productRepository.findAllBySellerNameAndIsDeletedIsFalse(sellerName, pageable);
-        return products.map(ProductDto.Info::new);
+        Page<ProductDto.Info> productPage = products.map(ProductDto.Info::new);
+        return GlobalDto.PageResponse.from(productPage);
     }
 
     @Override
@@ -88,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto.Info> searchProducts(int page, int size, String keyword) {
+    public GlobalDto.PageResponse<ProductDto.Info> searchProducts(int page, int size, String keyword) {
         throw new BusinessException(ExceptionCode.NOT_IMPLEMENTED);
     }
 

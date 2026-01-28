@@ -1,5 +1,6 @@
 package com.sparta.ecommerce.order.service;
 
+import com.sparta.ecommerce._global.dto.GlobalDto;
 import com.sparta.ecommerce._global.exception.BusinessException;
 import com.sparta.ecommerce._global.exception.ExceptionCode;
 import com.sparta.ecommerce._global.utility.EncoderUtils;
@@ -34,22 +35,25 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderDto.Info> getOrdersByBuyerEmail(String buyerEmail, int size, int page) {
+    public GlobalDto.PageResponse<OrderDto.Info> getOrdersByBuyerEmail(String buyerEmail, int size, int page) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders = orderRepository.findAllByBuyerEmail(buyerEmail, pageable);
-        return orders.map(order -> new OrderDto.Info(order, order.getProduct()));
+        Page<OrderDto.Info> orderInfos = orders.map(order -> new OrderDto.Info(order, order.getProduct()));
+        return GlobalDto.PageResponse.from(orderInfos);
     }
 
     @Override
-    public Page<OrderDto.DetailedInfo> getOrdersByProductId(Long productId, String password,
+    public GlobalDto.PageResponse<OrderDto.DetailedInfo> getOrdersByProductId(Long productId, String password,
             int size, int page) {
         Product product = productService.getProductEntityById(productId);
         if (encoderUtils.matches(password, product.getEncryptedPassword())) {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
             Page<Order> orders = orderRepository.findAllByProductId(productId, pageable);
-            return orders.map(order -> new OrderDto.DetailedInfo(order, product));
+            Page<OrderDto.DetailedInfo> orderPage = orders.map(order -> new OrderDto.DetailedInfo(order,
+                    product));
+            return GlobalDto.PageResponse.from(orderPage);
         }
-        return Page.empty();
+        return GlobalDto.PageResponse.empty();
     }
 
     @Override
