@@ -10,12 +10,14 @@ public class ProductDto {
         private final String name;
         private final Integer price;
         private final String currency;
+        private final Boolean isHidden;
 
         public Info(Product product) {
             this.id = product.getId();
             this.name = product.getName();
             this.price = product.getPrice();
             this.currency = product.getCurrency();
+            this.isHidden = product.getIsHidden();
         }
     }
 

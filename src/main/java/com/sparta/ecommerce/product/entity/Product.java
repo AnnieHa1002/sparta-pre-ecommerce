@@ -47,6 +47,7 @@ public class Product extends Timestamped {
     private String password;
 
     @Column(nullable = false)
+    @Setter
     private Boolean isDeleted = false;
 
     @Column(nullable = false)
@@ -56,7 +57,7 @@ public class Product extends Timestamped {
     private List<Order> orders;
 
 
-    public Product(ProductDto.Request requestBody, String encriptedPassword) {
+    public Product(ProductDto.Request requestBody, String encryptedPassword) {
         this.name = requestBody.getName();
         this.price = requestBody.getPrice();
         this.currency = requestBody.getCurrency();
@@ -65,7 +66,7 @@ public class Product extends Timestamped {
         this.imageUrl = requestBody.getImageUrl();
         this.sellerName = requestBody.getSellerName();
         this.sellerEmail = requestBody.getSellerEmail();
-        this.password = encriptedPassword;
+        this.password = encryptedPassword;
     }
 
 
@@ -85,5 +86,9 @@ public class Product extends Timestamped {
         if (requestBody.getImageUrl() != null) {
             this.imageUrl = requestBody.getImageUrl();
         }
+    }
+
+    public void delete() {
+        this.isDeleted = true;
     }
 }

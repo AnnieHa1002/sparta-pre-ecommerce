@@ -63,6 +63,29 @@ public class ProductController {
         return new ResponseEntity<>(Message.success(null), HttpStatus.OK);
     }
 
+    @Operation(summary = "상품 접근 권한 확인", description = "상품 수정/삭제를 위한 판매자 권한을 확인합니다")
+    @GetMapping("/{productId}/authorization")
+    public ResponseEntity<Message> checkAuthorization(
+            @Parameter(description = "상품 ID") @PathVariable Long productId,
+            @RequestBody ProductDto.SellerAuth requestBody) {
+        boolean response = productService.checkAuthorization(productId, requestBody);
+        // 해당 위치에서 토큰을 발급하는 등의 보안처리가 필요할 것으로 보임.
+        // 발급된 토큰을 기반으로 추후 수정, 삭제 가능 하도록 하는 것이 효용성 있음
+        // 현재는 일단 삭제 수정시 비밀번호도 함께 받도록 하였지만 추후 위 방법으로 수정 필요
+        return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
+    }
+
+
+    @Operation(summary = "유저의 상품 목록 조회", description = "특정 판매자의 상품을 페이지네이션으로 조회합니다")
+    @GetMapping("/sellers")
+    public ResponseEntity<Message> getSellerProducts(
+            @Parameter(description = "판매자 이름") @RequestParam String sellerName,
+            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
+        Page<ProductDto.Info> response = productService.getSellerProducts(sellerName, page, size);
+        return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
+    }
+
     @Operation(summary = "상품 검색", description = "키워드로 상품을 검색합니다")
     @GetMapping("/search")
     public ResponseEntity<Message> searchProducts(

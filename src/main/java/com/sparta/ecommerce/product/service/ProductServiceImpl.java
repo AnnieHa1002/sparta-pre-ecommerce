@@ -1,6 +1,5 @@
 package com.sparta.ecommerce.product.service;
 
-import com.sparta.ecommerce._global.enums.OrderStatus;
 import com.sparta.ecommerce._global.exception.BusinessException;
 import com.sparta.ecommerce._global.exception.ExceptionCode;
 import com.sparta.ecommerce._global.utility.EncoderUtils;
@@ -29,9 +28,25 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDto.Info> getProducts(int page, int size) {
         //id  descending
         Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "id"));
-        Page<Product> products = productRepository.findAll(pageable);
+        Page<Product> products = productRepository.findAllByIsDeletedIsFalse(pageable);
         return products.map(ProductDto.Info::new);
     }
+
+    @Override
+    public Page<ProductDto.Info> getSellerProducts(String sellerName, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "id"));
+        Page<Product> products = productRepository.findAllBySellerNameAndIsDeletedIsFalse(sellerName, pageable);
+        return products.map(ProductDto.Info::new);
+    }
+
+    @Override
+    public void decreaseProductCount(Long productId, Integer count) {
+        int updatedRows = productRepository.decreaseStock(productId, count);
+        if (updatedRows == 0) {
+            throw new BusinessException(ExceptionCode.INSUFFICIENT_STOCK);
+        }
+    }
+
 
     @Override
     public ProductDto.DetailInfo registerProduct(ProductDto.Request requestBody) {
@@ -50,8 +65,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto.DetailInfo updateProduct(Long productId, ProductDto.Request requestBody) {
-        boolean sold =
-                productRepository.existsByIdAndOrdersIsNotEmpty(productId);
+        boolean sold = productRepository.existsByIdAndOrdersIsNotEmptyAndIsDeletedIsFalse(productId);
         if (sold && requestBody.getPrice() != null) {
             throw new BusinessException(ExceptionCode.PRICE_NOT_CHANGEABLE);
         }
@@ -68,12 +82,25 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
         checkSellerPassword(requestBody.getSellerPassword(), product.getPassword());
-        productRepository.delete(product);
+        product.delete();
     }
 
     @Override
     public Page<ProductDto.Info> searchProducts(int page, int size, String keyword) {
-        return null;
+        throw new BusinessException(ExceptionCode.NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public boolean checkAuthorization(Long productId, ProductDto.SellerAuth requestBody) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
+        return encoderUtil.matches(requestBody.getSellerPassword(), product.getPassword());
+    }
+
+    @Override
+    public Product getProductEntityById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
     }
 
     protected void checkSellerPassword(String rawPassword, String encryptedPassword) {
