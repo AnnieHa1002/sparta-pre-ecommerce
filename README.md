@@ -45,7 +45,7 @@ erDiagram
         String image_url
         String seller_name "NOT NULL"
         String seller_email "NOT NULL"
-        String password  "NOT NULL"
+        String encryptedPassword  "NOT NULL"
         Boolean is_deleted "NOT NULL, default false"
         Boolean is_hidden "NOT NULL, default false"
         LocalDateTime created_at

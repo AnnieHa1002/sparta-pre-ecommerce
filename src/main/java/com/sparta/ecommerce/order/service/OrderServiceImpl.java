@@ -44,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
     public Page<OrderDto.DetailedInfo> getOrdersByProductId(Long productId, String password,
             int size, int page) {
         Product product = productService.getProductEntityById(productId);
-        if (encoderUtils.matches(password, product.getPassword())) {
+        if (encoderUtils.matches(password, product.getEncryptedPassword())) {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
             Page<Order> orders = orderRepository.findAllByProductId(productId, pageable);
             return orders.map(order -> new OrderDto.DetailedInfo(order, product));

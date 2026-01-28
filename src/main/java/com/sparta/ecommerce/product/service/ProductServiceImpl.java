@@ -35,7 +35,8 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto.Info> getSellerProducts(String sellerName, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
-        Page<Product> products = productRepository.findAllBySellerNameAndIsDeletedIsFalse(sellerName, pageable);
+        Page<Product> products =
+                productRepository.findAllBySellerNameAndIsDeletedIsFalse(sellerName, pageable);
         return products.map(ProductDto.Info::new);
     }
 
@@ -65,13 +66,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto.DetailInfo updateProduct(Long productId, ProductDto.Request requestBody) {
-        boolean sold = productRepository.existsByIdAndOrdersIsNotEmptyAndIsDeletedIsFalse(productId);
+        boolean sold =
+                productRepository.existsByIdAndOrdersIsNotEmptyAndIsDeletedIsFalse(productId);
         if (sold && requestBody.getPrice() != null) {
             throw new BusinessException(ExceptionCode.PRICE_NOT_CHANGEABLE);
         }
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
-        checkSellerPassword(requestBody.getSellerPassword(), product.getPassword());
+        checkSellerPassword(requestBody.getSellerPassword(), product.getEncryptedPassword());
         product.update(requestBody);
         return new ProductDto.DetailInfo(product);
     }
@@ -81,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
-        checkSellerPassword(requestBody.getSellerPassword(), product.getPassword());
+        checkSellerPassword(requestBody.getSellerPassword(), product.getEncryptedPassword());
         product.delete();
     }
 
@@ -94,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean checkAuthorization(Long productId, ProductDto.SellerAuth requestBody) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
-        return encoderUtil.matches(requestBody.getSellerPassword(), product.getPassword());
+        return encoderUtil.matches(requestBody.getSellerPassword(), product.getEncryptedPassword());
     }
 
     @Override

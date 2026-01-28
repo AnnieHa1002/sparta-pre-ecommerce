@@ -44,7 +44,8 @@ public class Product extends Timestamped {
     @Column(nullable = false)
     private String sellerEmail;
 
-    private String password;
+    @Column(nullable = false)
+    private String encryptedPassword;
 
     @Column(nullable = false)
     @Setter
@@ -66,7 +67,7 @@ public class Product extends Timestamped {
         this.imageUrl = requestBody.getImageUrl();
         this.sellerName = requestBody.getSellerName();
         this.sellerEmail = requestBody.getSellerEmail();
-        this.password = encryptedPassword;
+        this.encryptedPassword = encryptedPassword;
     }
 
 
