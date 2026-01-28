@@ -11,6 +11,7 @@ public class ProductDto {
         private final Integer price;
         private final String currency;
         private final Boolean isHidden;
+        private final Integer stock;
 
         public Info(Product product) {
             this.id = product.getId();
@@ -18,6 +19,7 @@ public class ProductDto {
             this.price = product.getPrice();
             this.currency = product.getCurrency();
             this.isHidden = product.getIsHidden();
+            this.stock = product.getStock();
         }
     }
 
