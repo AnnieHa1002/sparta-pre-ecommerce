@@ -54,7 +54,7 @@ public class OrderDto {
         private final String buyerAddress;
         private final String buyerPostcode;
 
-        public BuyerInfo(Order order) {
+        public BuyerInfo(com.sparta.ecommerce.order.entity.Order order) {
             this.buyerEmail = order.getBuyerEmail();
             this.buyerAddress = order.getBuyerAddress();
             this.buyerPostcode = order.getBuyerPostcode();

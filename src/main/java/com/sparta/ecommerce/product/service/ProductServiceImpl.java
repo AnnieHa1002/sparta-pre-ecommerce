@@ -1,10 +1,10 @@
 package com.sparta.ecommerce.product.service;
 
+import com.sparta.ecommerce._global.component.CursorCode;
 import com.sparta.ecommerce._global.dto.GlobalDto;
 import com.sparta.ecommerce._global.exception.BusinessException;
 import com.sparta.ecommerce._global.exception.ExceptionCode;
 import com.sparta.ecommerce._global.utility.EncoderUtils;
-import com.sparta.ecommerce._global.utility.Utility;
 import com.sparta.ecommerce.product.dto.ProductDto;
 import com.sparta.ecommerce.product.entity.Product;
 import com.sparta.ecommerce.product.repository.ProductRepository;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.sparta.ecommerce._global.utility.Utility.getCursorInfo;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 
@@ -27,6 +26,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final EncoderUtils encoderUtil;
+    private final CursorCode cursorCode;
 
 
     @Override
@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products;
         // cursor가 있으면 cursor 이후 데이터 조회
         if (cursor != null) {
-            Utility.CursorInfo cursorInfo = getCursorInfo(cursor);
+            CursorCode.CursorInfo cursorInfo = cursorCode.decode(cursor);
             products = productRepository.findAllWithCursor(cursorInfo.cursorCreatedAt(),
                     cursorInfo.cursorId(), pageable);
         }
@@ -58,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
         String nextCursor = null;
         if (hasNext && !products.isEmpty()) {
             Product last = products.getLast();
-            nextCursor = Utility.getNextCursor(last);
+            nextCursor = cursorCode.encode(last.getCreatedAt(), last.getId());
         }
         return GlobalDto.CursorResponse.fromEntityList(products, hasNext, nextCursor);
     }
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> products;
         // cursor가 있으면 cursor 이후 데이터 조회
         if (cursor != null) {
-            Utility.CursorInfo cursorInfo = getCursorInfo(cursor);
+            CursorCode.CursorInfo cursorInfo = cursorCode.decode(cursor);
             products = productRepository.findAllBySellerNameWithCursor(sellerName,
                     cursorInfo.cursorCreatedAt(), cursorInfo.cursorId(), pageable);
         }
@@ -86,7 +86,7 @@ public class ProductServiceImpl implements ProductService {
         String nextCursor = null;
         if (hasNext && !products.isEmpty()) {
             Product last = products.getLast();
-            nextCursor = Utility.getNextCursor(last);
+            nextCursor = cursorCode.encode(last.getCreatedAt(), last.getId());
         }
         return GlobalDto.CursorResponse.fromEntityList(products, hasNext, nextCursor);
     }

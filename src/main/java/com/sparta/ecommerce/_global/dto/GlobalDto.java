@@ -1,6 +1,7 @@
 package com.sparta.ecommerce._global.dto;
 
 import com.sparta.ecommerce.order.dto.OrderDto;
+import com.sparta.ecommerce.order.entity.Order;
 import com.sparta.ecommerce.product.dto.ProductDto;
 import com.sparta.ecommerce.product.entity.Product;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,31 @@ public class GlobalDto {
                     .map(ProductDto.Info::new)
                     .toList();
             return new CursorResponse<>(productInfos, productInfos.size(), hasNext, nextCursor);
+        }
+
+
+        public static CursorResponse<OrderDto.DetailedInfo> fromEntityListToDetailedInfo(
+                List<Order> orders, Product product, boolean hasNext, String nextCursor) {
+            List<OrderDto.DetailedInfo> orderInfos = orders.stream()
+                    .map(order -> new OrderDto.DetailedInfo(order, product))
+                    .toList();
+            return new CursorResponse<>(orderInfos, orderInfos.size(), hasNext, nextCursor);
+        }
+
+        public static CursorResponse<OrderDto.DetailedInfo> fromEntityListToDetailedInfoAndNoProduct(
+                List<Order> orders, boolean hasNext, String nextCursor) {
+            List<OrderDto.DetailedInfo> orderInfos = orders.stream()
+                    .map(order -> new OrderDto.DetailedInfo(order, order.getProduct()))
+                    .toList();
+            return new CursorResponse<>(orderInfos, orderInfos.size(), hasNext, nextCursor);
+        }
+
+        public static CursorResponse<OrderDto.Info> fromEntityListToInfo(List<Order> orders,
+                boolean hasNext, String nextCursor) {
+            List<OrderDto.Info> orderInfos = orders.stream()
+                    .map(order -> new OrderDto.Info(order, order.getProduct()))
+                    .toList();
+            return new CursorResponse<>(orderInfos, orderInfos.size(), hasNext, nextCursor);
         }
     }
 

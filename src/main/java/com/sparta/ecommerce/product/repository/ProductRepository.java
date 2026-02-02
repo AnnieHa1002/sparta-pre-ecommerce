@@ -29,7 +29,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "AND (p.createdAt < :cursorCreatedAt " +
             "OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)) " +
             "ORDER BY p.createdAt DESC, p.id DESC")
-    List<Product> findAllWithCursor(LocalDateTime cursorCreatedAt, Long cursorId, Pageable pageable);
+    List<Product> findAllWithCursor(LocalDateTime cursorCreatedAt, Long cursorId,
+            Pageable pageable);
 
     Page<Product> findAllBySellerNameAndIsDeletedIsFalse(String sellerName, Pageable pageable);
 
@@ -38,15 +39,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findFirstPage(Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.isDeleted = false " +
-            "AND p.sellerName =  :sellerName " +
-            "AND (p.createdAt < :cursorCreatedAt " +
+            "AND p.sellerName =  :sellerName AND (p.createdAt < :cursorCreatedAt " +
             "OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)) " +
             "ORDER BY p.createdAt DESC, p.id DESC")
-    List<Product> findAllBySellerNameWithCursor(String sellerName, LocalDateTime localDateTime,
-            Long aLong, Pageable pageable);
+    List<Product> findAllBySellerNameWithCursor(String sellerName, LocalDateTime cursorCreatedAt,
+            Long cursorId, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.isDeleted = false " +
-            "AND p.sellerName =  :sellerName " +
-            "ORDER BY p.createdAt DESC, p.id DESC")
+            "AND p.sellerName =  :sellerName ORDER BY p.createdAt DESC, p.id DESC")
     List<Product> findBySellerNameForFirstPage(String sellerName, Pageable pageable);
 }

@@ -24,9 +24,10 @@ public class ProductController {
     @Operation(summary = "상품 목록 조회", description = "전체 상품을 페이지네이션으로 조회합니다")
     @GetMapping("")
     public ResponseEntity<Message> getAllProducts(
-            @Parameter(description = "커서이름") @RequestParam String cursorName,
+            @Parameter(description = "커서이름") @RequestParam(required = false) String cursorName,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
-        GlobalDto.CursorResponse<ProductDto.Info> response = productService.getProductsByCursor(cursorName, size);
+        GlobalDto.CursorResponse<ProductDto.Info> response =
+                productService.getProductsByCursor(cursorName, size);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
@@ -80,10 +81,10 @@ public class ProductController {
     @GetMapping("/sellers")
     public ResponseEntity<Message> getSellerProducts(
             @Parameter(description = "판매자 이름") @RequestParam String sellerName,
-            @Parameter(description = "커서 이름") @RequestParam String cursor,
+            @Parameter(description = "커서 이름") @RequestParam(required = false) String cursor,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
         GlobalDto.CursorResponse<ProductDto.Info> response =
-                productService.getSellerProducts(sellerName, cursor, size);
+                productService.getSellerProducts(cursor, sellerName, size);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
