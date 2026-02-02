@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
@@ -22,6 +25,28 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findAllByIsDeletedIsFalse(Pageable pageable);
 
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false " +
+            "AND (p.createdAt < :cursorCreatedAt " +
+            "OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)) " +
+            "ORDER BY p.createdAt DESC, p.id DESC")
+    List<Product> findAllWithCursor(LocalDateTime cursorCreatedAt, Long cursorId, Pageable pageable);
 
     Page<Product> findAllBySellerNameAndIsDeletedIsFalse(String sellerName, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false " +
+            "ORDER BY p.createdAt DESC, p.id DESC")
+    List<Product> findFirstPage(Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false " +
+            "AND p.sellerName =  :sellerName " +
+            "AND (p.createdAt < :cursorCreatedAt " +
+            "OR (p.createdAt = :cursorCreatedAt AND p.id < :cursorId)) " +
+            "ORDER BY p.createdAt DESC, p.id DESC")
+    List<Product> findAllBySellerNameWithCursor(String sellerName, LocalDateTime localDateTime,
+            Long aLong, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false " +
+            "AND p.sellerName =  :sellerName " +
+            "ORDER BY p.createdAt DESC, p.id DESC")
+    List<Product> findBySellerNameForFirstPage(String sellerName, Pageable pageable);
 }

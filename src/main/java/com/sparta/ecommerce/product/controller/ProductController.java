@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -25,9 +24,9 @@ public class ProductController {
     @Operation(summary = "상품 목록 조회", description = "전체 상품을 페이지네이션으로 조회합니다")
     @GetMapping("")
     public ResponseEntity<Message> getAllProducts(
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "커서이름") @RequestParam String cursorName,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
-        GlobalDto.PageResponse<ProductDto.Info> response = productService.getProducts(page, size);
+        GlobalDto.CursorResponse<ProductDto.Info> response = productService.getProductsByCursor(cursorName, size);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
@@ -81,10 +80,10 @@ public class ProductController {
     @GetMapping("/sellers")
     public ResponseEntity<Message> getSellerProducts(
             @Parameter(description = "판매자 이름") @RequestParam String sellerName,
-            @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "커서 이름") @RequestParam String cursor,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size) {
-        GlobalDto.PageResponse<ProductDto.Info>
-                response = productService.getSellerProducts(sellerName, page, size);
+        GlobalDto.CursorResponse<ProductDto.Info> response =
+                productService.getSellerProducts(sellerName, cursor, size);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 
@@ -94,8 +93,9 @@ public class ProductController {
             @Parameter(description = "페이지 번호") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "검색 키워드") @RequestParam String keyword) {
-        GlobalDto.PageResponse<ProductDto.Info>
-                response = productService.searchProducts(page, size, keyword);
+        //not implemented
+        GlobalDto.CursorResponse<ProductDto.Info> response =
+                productService.searchProducts(page, size, keyword);
         return new ResponseEntity<>(Message.success(response), HttpStatus.OK);
     }
 

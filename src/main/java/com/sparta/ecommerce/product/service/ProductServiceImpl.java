@@ -4,6 +4,7 @@ import com.sparta.ecommerce._global.dto.GlobalDto;
 import com.sparta.ecommerce._global.exception.BusinessException;
 import com.sparta.ecommerce._global.exception.ExceptionCode;
 import com.sparta.ecommerce._global.utility.EncoderUtils;
+import com.sparta.ecommerce._global.utility.Utility;
 import com.sparta.ecommerce.product.dto.ProductDto;
 import com.sparta.ecommerce.product.entity.Product;
 import com.sparta.ecommerce.product.repository.ProductRepository;
@@ -14,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+import static com.sparta.ecommerce._global.utility.Utility.getCursorInfo;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 
@@ -27,22 +31,64 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public GlobalDto.PageResponse<ProductDto.Info> getProducts(int page, int size) {
-        //id  descending
         Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
-        Page<Product> products =
-                productRepository.findAllByIsDeletedIsFalse(pageable);
+        Page<Product> products = productRepository.findAllByIsDeletedIsFalse(pageable);
         Page<ProductDto.Info> productPage = products.map(ProductDto.Info::new);
         return GlobalDto.PageResponse.from(productPage);
     }
 
     @Override
-    public GlobalDto.PageResponse<ProductDto.Info> getSellerProducts(String sellerName, int page,
-            int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(DESC, "createdAt"));
-        Page<Product> products =
-                productRepository.findAllBySellerNameAndIsDeletedIsFalse(sellerName, pageable);
-        Page<ProductDto.Info> productPage = products.map(ProductDto.Info::new);
-        return GlobalDto.PageResponse.from(productPage);
+    public GlobalDto.CursorResponse<ProductDto.Info> getProductsByCursor(String cursor, int size) {
+        // 페이지 크기 + 1개 조회 (다음 페이지 존재 여부 확인용)
+        Pageable pageable = PageRequest.of(0, size + 1);
+        List<Product> products;
+        // cursor가 있으면 cursor 이후 데이터 조회
+        if (cursor != null) {
+            Utility.CursorInfo cursorInfo = getCursorInfo(cursor);
+            products = productRepository.findAllWithCursor(cursorInfo.cursorCreatedAt(),
+                    cursorInfo.cursorId(), pageable);
+        }
+        // cursor가 없으면 첫 페이지 조회
+        else products = productRepository.findFirstPage(pageable);
+        boolean hasNext = products.size() > size;
+        if (hasNext) {
+            products = products.subList(0, size);  // 초과분 제거
+        }
+
+        String nextCursor = null;
+        if (hasNext && !products.isEmpty()) {
+            Product last = products.getLast();
+            nextCursor = Utility.getNextCursor(last);
+        }
+        return GlobalDto.CursorResponse.fromEntityList(products, hasNext, nextCursor);
+    }
+
+
+    @Override
+    public GlobalDto.CursorResponse<ProductDto.Info> getSellerProducts(String cursor,
+            String sellerName, int size) {
+        // 페이지 크기 + 1개 조회 (다음 페이지 존재 여부 확인용)
+        Pageable pageable = PageRequest.of(0, size + 1);
+        List<Product> products;
+        // cursor가 있으면 cursor 이후 데이터 조회
+        if (cursor != null) {
+            Utility.CursorInfo cursorInfo = getCursorInfo(cursor);
+            products = productRepository.findAllBySellerNameWithCursor(sellerName,
+                    cursorInfo.cursorCreatedAt(), cursorInfo.cursorId(), pageable);
+        }
+        // cursor가 없으면 첫 페이지 조회
+        else products = productRepository.findBySellerNameForFirstPage(sellerName, pageable);
+        boolean hasNext = products.size() > size;
+        if (hasNext) {
+            products = products.subList(0, size);  // 초과분 제거
+        }
+
+        String nextCursor = null;
+        if (hasNext && !products.isEmpty()) {
+            Product last = products.getLast();
+            nextCursor = Utility.getNextCursor(last);
+        }
+        return GlobalDto.CursorResponse.fromEntityList(products, hasNext, nextCursor);
     }
 
     @Override
@@ -93,7 +139,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public GlobalDto.PageResponse<ProductDto.Info> searchProducts(int page, int size, String keyword) {
+    public GlobalDto.CursorResponse<ProductDto.Info> searchProducts(int page, int size,
+            String keyword) {
         throw new BusinessException(ExceptionCode.NOT_IMPLEMENTED);
     }
 

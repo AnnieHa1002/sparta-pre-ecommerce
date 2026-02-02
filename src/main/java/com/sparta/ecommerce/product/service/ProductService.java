@@ -26,15 +26,18 @@ public interface ProductService {
     void deleteProduct(Long productId, ProductDto.SellerAuth requestBody);
 
     @Transactional(readOnly = true)
-    GlobalDto.PageResponse<ProductDto.Info> searchProducts(int page, int size, String keyword);
+    GlobalDto.CursorResponse<ProductDto.Info> searchProducts(int page, int size, String keyword);
 
     boolean checkAuthorization(Long productId, ProductDto.SellerAuth requestBody);
 
     @Transactional(readOnly = true)
     Product getProductEntityById(Long productId);
 
+    GlobalDto.CursorResponse<ProductDto.Info> getProductsByCursor(String cursor, int size);
+
     @Transactional(readOnly = true)
-    GlobalDto.PageResponse<ProductDto.Info> getSellerProducts(String sellerName, int page, int size);
+    GlobalDto.CursorResponse<ProductDto.Info> getSellerProducts(String cursor, String sellerName,
+            int size);
 
     @Transactional
     void decreaseProductCount(Long productId, @NotNull @Min(0) @Max(1) Integer count);
