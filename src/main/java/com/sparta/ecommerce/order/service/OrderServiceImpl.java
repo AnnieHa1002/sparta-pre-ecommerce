@@ -31,9 +31,7 @@ public class OrderServiceImpl implements OrderService {
         productService.decreaseProductCount(productId, requestBody.count());
         Product product = productService.getProductEntityById(productId);
         String encryptedPassword = encoderUtils.encrypt(requestBody.password());
-        com.sparta.ecommerce.order.entity.Order order =
-                new com.sparta.ecommerce.order.entity.Order(product, requestBody,
-                        encryptedPassword);
+        Order order = new Order(product, requestBody, encryptedPassword);
         orderRepository.save(order);
         return new OrderDto.DetailedInfo(order, product);
     }
@@ -99,7 +97,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDto.DetailedInfo getOrderByOrderId(Long orderId, String password) {
-        com.sparta.ecommerce.order.entity.Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ExceptionCode.ORDER_NOT_FOUND));
         if (!encoderUtils.matches(password, order.getEncryptedPassword()))
             throw new BusinessException(ExceptionCode.INVALID_ORDER_PASSWORD);
