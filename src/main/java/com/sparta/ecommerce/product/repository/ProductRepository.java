@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -28,7 +29,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :id AND p.stock >= :count AND p.isDeleted IS FALSE")
-    Product findByIdAndMoreStockCountWithPessimisticLock(Long id, int count);
+    Optional<Product> findByIdAndMoreStockCountWithPessimisticLock(Long id, int count);
+
+    @Lock(LockModeType.OPTIMISTIC)
+    @Query("SELECT p FROM Product p WHERE p.id = :id AND p.isDeleted IS FALSE")
+    Optional<Product> findByIdWithOptimisticLock(Long id);
 
     Page<Product> findAllByIsDeletedIsFalse(Pageable pageable);
 

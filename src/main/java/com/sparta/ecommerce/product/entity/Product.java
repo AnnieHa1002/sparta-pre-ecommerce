@@ -54,6 +54,9 @@ public class Product extends Timestamped {
     @Column(nullable = false)
     private Boolean isHidden = false;
 
+    @Version
+    private final Long version = 0L;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders;
 

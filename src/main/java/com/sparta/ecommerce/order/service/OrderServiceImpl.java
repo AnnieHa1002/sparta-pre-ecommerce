@@ -11,6 +11,7 @@ import com.sparta.ecommerce.order.repository.OrderRepository;
 import com.sparta.ecommerce.product.entity.Product;
 import com.sparta.ecommerce.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDto.DetailedInfo orderProduct(Long productId, OrderDto.Request requestBody) {
-        productService.decreaseProductCount(productId, requestBody.count());
+        int retry = 0;
+        boolean success = false;
+        while (retry < 3) {
+            try {
+                success = productService.decreaseProductCount(productId, requestBody.count());
+                break;
+            } catch (OptimisticLockingFailureException e) {
+                if (++retry == 3) {
+                    throw new BusinessException(ExceptionCode.ORDER_FAILED_TRY_AGAIN);
+                }
+            }
+        }
+        if(!success) {
+            throw new BusinessException(ExceptionCode.ORDER_FAILED_TRY_AGAIN);
+        }
         Product product = productService.getProductEntityById(productId);
         String encryptedPassword = encoderUtils.encrypt(requestBody.password());
         Order order = new Order(product, requestBody, encryptedPassword);

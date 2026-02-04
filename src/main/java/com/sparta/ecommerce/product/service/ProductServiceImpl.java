@@ -92,18 +92,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void decreaseProductCount(Long productId, Integer count) {
-        Product product =
-                productRepository.findByIdAndMoreStockCountWithPessimisticLock(productId, count);
+    public boolean decreaseProductCount(Long productId, Integer count) {
+        Product product = productRepository.findByIdWithOptimisticLock(productId)
+                .orElseThrow(() -> new BusinessException(ExceptionCode.PRODUCT_NOT_FOUND));
         // 만약 해당하는 상품이 없으면(재고 부족) 예외 처리
-        if (product == null) {
-            throw new BusinessException(ExceptionCode.INSUFFICIENT_STOCK);
-        }
-        int updatedRow = productRepository.decreaseStock(productId, count);
-        if (updatedRow == 0) {
+        if (product.getStock() < count) {
             throw new BusinessException(ExceptionCode.INSUFFICIENT_STOCK);
         }
         product.setStock(product.getStock() - count);
+        return true;
     }
 
 
