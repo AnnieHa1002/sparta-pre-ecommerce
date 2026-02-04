@@ -1,9 +1,11 @@
 package com.sparta.ecommerce.product.repository;
 
 import com.sparta.ecommerce.product.entity.Product;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -22,6 +24,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
     @Query("UPDATE Product p SET p.stock = p.stock - :count WHERE p.id = :id AND p.stock >= :count")
     int decreaseStock(Long id, int count);
+
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p WHERE p.id = :id AND p.stock >= :count AND p.isDeleted IS FALSE")
+    Product findByIdAndMoreStockCountWithPessimisticLock(Long id, int count);
 
     Page<Product> findAllByIsDeletedIsFalse(Pageable pageable);
 
