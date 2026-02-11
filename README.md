@@ -61,6 +61,7 @@ erDiagram
         String buyer_postcode "NOT NULL"
         String encrypted_password "NOT NULL"
         OrderStatus status "NOT NULL, default ORDERED"
+        Long version "NOT NULL"
         LocalDateTime created_at
         LocalDateTime modified_at
     }
@@ -154,6 +155,65 @@ AtomicInteger 같은 애플리케이션 레벨의 원자성도 있지만, 주문
 
 첫 번째 주문은 성공(200)하고, 두 번째 주문은 재고 부족으로 실패(400)한다.
 
+---
+
+### 커서 기반 페이지네이션 (Cursor Pagination)
+
+기존 Offset 기반 페이지네이션을 **커서(Keyset) 기반 페이지네이션**으로 리팩토링하였다.
+
+#### Offset 방식의 한계
+
+- 페이지가 뒤로 갈수록 성능이 저하된다 (앞의 데이터를 모두 건너뛰어야 하므로).
+- 데이터가 실시간으로 추가/삭제되면 중복 조회나 누락이 발생할 수 있다.
+
+#### 커서 방식 도입
+
+마지막으로 조회한 항목의 `createdAt`과 `id`를 조합한 복합 커서를 Base64로 인코딩하여 다음 페이지 요청 시 전달한다.
+
+```java
+// CursorCode - 커서 인코딩/디코딩
+public String encode(LocalDateTime createdAt, Long id) {
+    return Base64.getEncoder()
+            .encodeToString((createdAt + "," + id).getBytes());
+}
+```
+
+- WHERE 절에서 커서 이후의 데이터만 조회하므로 **페이지 깊이에 관계없이 일정한 성능**을 보장한다.
+- `CursorPageResponse` DTO로 `nextCursor`, `hasNext` 등의 메타 정보를 함께 반환한다.
+- Product와 Order 양쪽 도메인 모두 커서 기반으로 전환하였다.
+
+---
+
+### 동시성 제어 — 비관적 락 vs 낙관적 락
+
+기존 단일 UPDATE 쿼리 방식에서 **JPA 락 메커니즘**을 활용한 동시성 제어로 리팩토링하였다.
+
+#### 비관적 락 (Pessimistic Lock)
+
+`@Lock(LockModeType.PESSIMISTIC_WRITE)`를 사용하여 SELECT 시점에 DB 행 잠금을 건다.
+
+```java
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("SELECT p FROM Product p WHERE p.id = :id")
+Optional<Product> findByIdWithPessimisticLock(@Param("id") Long id);
+```
+
+- 안전성이 높지만, 동시 요청 증가 시 대기 시간이 급증한다.
+- 다중 서버 환경에서 서버 간 락 정보를 공유할 수 없다.
+
+#### 낙관적 락 (Optimistic Lock) — 최종 채택
+
+Product 엔티티에 `@Version` 필드를 추가하여, 저장 시점에 버전 불일치가 감지되면 `OptimisticLockingFailureException`이 발생하도록 구현하였다.
+
+```java
+@Version
+private Long version;
+```
+
+- 충돌 발생 시 최대 3회 재시도하며, 각 재시도는 `Propagation.REQUIRES_NEW`로 새 트랜잭션에서 수행한다.
+- 비관적 락 대비 DB 잠금이 없어 성능상 유리하고, 읽기 빈도가 높은 이커머스 특성에 적합하다.
+- 향후 다중 서버 환경에서는 Redis 기반 분산 락 도입을 고려할 수 있다.
+
 ## API Endpoints
 
 ### Product API
@@ -167,7 +227,6 @@ AtomicInteger 같은 애플리케이션 레벨의 원자성도 있지만, 주문
 | DELETE | `/api/products/{id}`              | 상품 삭제 (판매자 인증 필요)   |
 | GET    | `/api/products/{id}/authorization` | 판매자 권한 확인              |
 | GET    | `/api/products/sellers`           | 판매자별 상품 목록 조회        |
-| GET    | `/api/products/search`            | 상품 검색                    |
 
 #### 상품 목록 조회
 ![상품 목록 조회](src/main/resources/static/images/product-list.png)
@@ -212,7 +271,7 @@ AtomicInteger 같은 애플리케이션 레벨의 원자성도 있지만, 주문
 ```
 com.sparta.ecommerce
 ├── _global
-│   ├── component        # AnsiColorCode, GlobalValues
+│   ├── component        # AnsiColorCode, GlobalValues, CursorCode
 │   ├── config           # Security, WebMvc, Jackson, RestTemplate
 │   ├── enums            # OrderStatus
 │   ├── exception        # BusinessException, ExceptionCode, Handler
@@ -224,7 +283,11 @@ com.sparta.ecommerce
 │   ├── repository       # ProductRepository
 │   └── service          # ProductService, ProductServiceImpl
 └── order
-    └── entity           # Order
+    ├── controller       # OrderController
+    ├── dto              # OrderDto
+    ├── entity           # Order
+    ├── repository       # OrderRepository
+    └── service          # OrderService, OrderServiceImpl
 ```
 
 ## Daily Log
@@ -248,3 +311,14 @@ com.sparta.ecommerce
 - OrderStatus enum 기반 주문 상태 관리
 - 테이블명 orders로 변경 (SQL 예약어 충돌 방지)
 - ERD 및 README 현재 엔티티에 맞게 업데이트
+
+### 2026-02-02
+- 상품 목록 조회를 커서(Keyset) 기반 페이지네이션으로 리팩토링
+- 주문 목록 조회를 커서 기반 페이지네이션으로 리팩토링
+- CursorCode 컴포넌트 구현 (Base64 기반 커서 인코딩/디코딩)
+- CursorPageResponse DTO 추가 (nextCursor, hasNext 메타 정보 포함)
+
+### 2026-02-04
+- 비관적 락(Pessimistic Lock) 적용 — `@Lock(PESSIMISTIC_WRITE)`로 재고 차감 동시성 제어
+- 낙관적 락(Optimistic Lock)으로 최종 전환 — Product 엔티티에 `@Version` 필드 추가
+- 낙관적 락 충돌 시 최대 3회 재시도 로직 구현 (`Propagation.REQUIRES_NEW`)
